@@ -6,13 +6,15 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 pytest = "*"
-pytest-mock = "*"
+requests-mock = "*"
 pre-commit = "*"
 
 [packages]
 aws-sam-cli = "*"
 boto3 = "*"
 botocore = "*"
+requests = "*"
+crhelper = "*"
 
 [requires]
 python_version = "3.6"
