@@ -1,4 +1,4 @@
-# cfn-sc-actions-provider
+# cfn-cr-sc-actions-provider
 This template and associated Lambda function and custom resource add support to AWS CloudFormation for the [AWS Service Catalog Service Actions][1]
 resource type.
 
@@ -59,7 +59,7 @@ sam package --template-file .aws-sam/build/template.yaml \
   --s3-bucket essentials-awss3lambdaartifactsbucket-x29ftznj6pqw \
   --output-template-file .aws-sam/build/cfn-cr-sc-actions-provider.yaml
 
-aws s3 cp .aws-sam/build/template.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/cfn-cr-sc-actions-provider/master/
+aws s3 cp .aws-sam/build/cfn-cr-sc-actions-provider.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/cfn-cr-sc-actions-provider/master/
 ```
 
 ## Install Lambda into AWS
@@ -79,8 +79,8 @@ hooks:
 ```
 
 Install the lambda using sceptre:
-```bash script
-sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/cfn-sc-actions-provider.yaml
+```shell script
+sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/cfn-cr-sc-actions-provider.yaml
 ```
 
 # Usage
@@ -112,7 +112,7 @@ parameters:
 
 Create the AWS cloudformation template
 
-sc-action.yaml:
+template/sc-action.yaml:
 ```yaml
 Description: Service Catalog Service Action
 AWSTemplateFormatVersion: 2010-09-09
@@ -147,7 +147,7 @@ Resources:
     Type: Custom::ScActionsProvider
     Properties:
      ServiceToken: !ImportValue
-      'Fn::Sub': '${AWS::Region}-cfn-sc-actions-provider-CreateFunctionArn'
+      'Fn::Sub': '${AWS::Region}-cfn-cr-sc-actions-provider-CreateFunctionArn'
      SsmDocName: !Ref SsmDocName
      SsmDocVersion: !Ref SsmDocVersion
      Name: !Ref Name
@@ -157,7 +157,7 @@ Resources:
     Type: Custom::ScActionsProvider
     Properties:
       ServiceToken: !ImportValue
-        'Fn::Sub': '${AWS::Region}-cfn-sc-actions-provider-AssociateFunctionArn'
+        'Fn::Sub': '${AWS::Region}-cfn-cr-sc-actions-provider-AssociateFunctionArn'
       ServiceActionId: !Ref EC2InstanceAction
       ProductId: !Ref ProductId
       ProvisioningArtifactId: !Ref ProvisioningArtifactId
@@ -169,7 +169,7 @@ Outputs:
 ```
 
 Deploy the SC action:
-```bash script
+```shell script
 sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/sc-restart-instance-action.yaml
 ```
 
