@@ -23,5 +23,3 @@ to associate a service action to a product
         'Fn::Sub': '${AWS::Region}-sc-service-action-RestartEC2Instance'
       ProductId: !Ref 'scec2linuxproduct'
       ProvisioningArtifactId: !GetAtt scec2linuxproduct.ProvisioningArtifactIds
-
-
