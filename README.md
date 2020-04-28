@@ -1,12 +1,12 @@
-# lambda-template
-Template for creating lambda repositories
-A template for quickly starting a new AWS lambda project.
+# cfn-sc-actions-provider
+This template and associated Lambda function and custom resource add support to AWS CloudFormation for the [AWS Service Catalog Service Actions][1]
+resource type.
 
-## Naming
-Naming conventions:
-* for a vanilla Lambda: `lambda-<context>`
-* for a Cloudformation Transform macro: `cfn-transform-<context>`
-* for a Cloudformation Custom Resource: `cfn-cr-<context>`
+# Custom Resource
+We create this custom resource to automate service catalog action functionality.  This custom
+resource is implemented with a lambda to allow creation, update, and deletion of SC actions
+resources using cloudformation. It also provides the functionality to create, update and delete
+SC action associations to SC products.
 
 ## Development
 
@@ -30,7 +30,7 @@ $ sam build --use-container
 ### Run locally
 
 ```shell script
-$ sam local invoke HelloWorldFunction --event events/event.json
+$ sam local invoke CreateFunction --event events/create.json
 ```
 
 ### Run unit tests
@@ -57,32 +57,28 @@ This requires the correct permissions to upload to bucket
 ```shell script
 sam package --template-file .aws-sam/build/template.yaml \
   --s3-bucket essentials-awss3lambdaartifactsbucket-x29ftznj6pqw \
-  --output-template-file .aws-sam/build/lambda-template.yaml
+  --output-template-file .aws-sam/build/cfn-cr-sc-actions-provider.yaml
 
-aws s3 cp .aws-sam/build/template.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/lambda-template/master/
+aws s3 cp .aws-sam/build/template.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/cfn-cr-sc-actions-provider/master/
 ```
 
 ## Install Lambda into AWS
 Create the following [sceptre](https://github.com/Sceptre/sceptre) file
 
-config/prod/lambda-template.yaml
+config/prod/cfn-cr-sc-actions-provider.yaml
 ```yaml
-template_path: "remote/lambda-template.yaml"
-stack_name: "lambda-template"
+template_path: "remote/cfn-cr-sc-actions-provider.yaml"
+stack_name: "cfn-cr-sc-actions-provider"
 stack_tags:
   Department: "Platform"
   Project: "Infrastructure"
   OwnerEmail: "it@sagebase.org"
 hooks:
   before_launch:
-    - !cmd "curl https://s3.amazonaws.com/bootstrap-awss3cloudformationbucket-19qromfd235z9/lambda-template/master/lambda-template.yaml --create-dirs -o templates/remote/lambda-template.yaml"
+    - !cmd "curl https://s3.amazonaws.com/bootstrap-awss3cloudformationbucket-19qromfd235z9/cfn-cr-sc-actions-provider/master/cfn-cr-sc-actions-provider.yaml --create-dirs -o templates/remote/cfn-cr-sc-actions-provider.yaml"
 ```
 
 Install the lambda using sceptre:
 ```shell script
-sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/lambda-template.yaml
+sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/cfn-cr-sc-actions-provider.yaml
 ```
-
-## Author
-
-Your Name Here.

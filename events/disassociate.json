@@ -1,0 +1,44 @@
+
+
+{
+    "eventVersion": "1.05",
+    "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDATOOICTTHMNN4PB6S5",
+        "arn": "arn:aws:iam::237179673806:user/khai.do@sagebase.org",
+        "accountId": "237179673806",
+        "accessKeyId": "ASIATOOICTTHARA5HZWL",
+        "userName": "khai.do@sagebase.org",
+        "sessionContext": {
+            "sessionIssuer": {},
+            "webIdFederationData": {},
+            "attributes": {
+                "mfaAuthenticated": "true",
+                "creationDate": "2020-04-01T18:36:52Z"
+            }
+        }
+    },
+    "eventTime": "2020-04-02T05:17:22Z",
+    "eventSource": "servicecatalog.amazonaws.com",
+    "eventName": "BatchDisassociateServiceActionFromProvisioningArtifact",
+    "awsRegion": "us-east-1",
+    "sourceIPAddress": "76.121.239.170",
+    "userAgent": "Coral/Netty4",
+    "requestParameters": {
+        "serviceActionAssociations": [
+            {
+                "provisioningArtifactId": "pa-36u57sxrknv2o",
+                "productId": "prod-7b2bfi2eagf6e",
+                "serviceActionId": "act-5q7bsoqsdto6y"
+            }
+        ]
+    },
+    "responseElements": {
+        "failedServiceActionAssociations": []
+    },
+    "requestID": "7c5ff0c2-afc6-427d-bc1f-4e38c926674c",
+    "eventID": "7f9aa933-a7a7-4231-8abe-b43c4a44b543",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "237179673806"
+}
+

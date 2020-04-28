@@ -1,0 +1,27 @@
+to create a service action
+
+  RestartEC2InstanceAction:
+    Type: Custom::CreateScServiceActoion
+    Properties:
+     Type: Custom::ScActionsProvider
+     Properties:
+       ServiceToken: !ImportValue
+        'Fn::Sub': '${AWS::Region}-cfn-sc-actions-provider-ScActionsProviderCreatorFunctionArn'
+       Name: !Ref Name
+       Version: !Ref Version
+       AssumeRole: !Ref AssumeRole
+
+
+to associate a service action to a product
+
+  AssociateProductAction:
+    Type: Custom::ProductActionAssociation
+    Properties:
+      ServiceToken: !ImportValue
+        'Fn::Sub': '${AWS::Region}-cfn-sc-actions-provider-ScActionsProviderAssociationFunctionArn'
+      ServiceActionId: !ImportValue
+        'Fn::Sub': '${AWS::Region}-sc-service-action-RestartEC2Instance'
+      ProductId: !Ref 'scec2linuxproduct'
+      ProvisioningArtifactId: !GetAtt scec2linuxproduct.ProvisioningArtifactIds
+
+
