@@ -44,7 +44,7 @@ def create_provider(aws_account_id, name, ssm_doc_name, ssm_doc_version, assume_
                 "Name": ssm_doc_name,
                 "Version": ssm_doc_version,
                 "AssumeRole": assume_role,
-                "Parameters": "[{\"Name\":\"AutomationAssumeRole\",\"Type\":\"TARGET\"}]"
+                "Parameters": "[{\"Name\":\"InstanceId\",\"Type\":\"TARGET\"}]"
               }
     )
     id = response['ServiceActionDetail']['ServiceActionSummary']['Id']
