@@ -31,22 +31,10 @@ Resources:
             Action:
               - sts:AssumeRole
       ManagedPolicyArns:
-        - !Ref LogsPolicy
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
         - "arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess"
         - "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
         - "arn:aws:iam::aws:policy/IAMFullAccess"
-  LogsPolicy:
-    Type: 'AWS::IAM::ManagedPolicy'
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Resource: "*"
 Outputs:
   CreateFunctionArn:
     Value: !GetAtt CreateFunction.Arn
