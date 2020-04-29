@@ -57,14 +57,12 @@ def delete(event, context):
     disassociate_action(*get_parameters(event))
 
 def disassociate_action(aws_account_id, service_action_id, product_id, provisioning_artifact_id):
+    logger.debug(
+        "dis-associating action " + service_action_id + " with product " + product_id + ", " + provisioning_artifact_id)
     response = sc.disassociate_service_action_from_provisioning_artifact(
-        ServiceActionAssociations=[
-            {
-                'ServiceActionId': service_action_id,
-                'ProductId': product_id,
-                'ProvisioningArtifactId': provisioning_artifact_id
-            },
-        ],
+        ServiceActionId=service_action_id,
+        ProductId=product_id,
+        ProvisioningArtifactId=provisioning_artifact_id
     )
 
 @helper.update
@@ -79,24 +77,16 @@ def reassociate_action(event):
     if new_properties != old_properties:
         logger.info("removing association " + old_properties['ServiceActionId'])
         remove_response = sc.disassociate_service_action_from_provisioning_artifact(
-            ServiceActionAssociations=[
-                {
-                    'ServiceActionId': old_properties['ServiceActionId'],
-                    'ProductId': old_properties['ProductId'],
-                    'ProvisioningArtifactId': old_properties['ProvisioningArtifactId']
-                },
-            ],
+            ServiceActionId=old_properties['ServiceActionId'],
+            ProductId=old_properties['ProductId'],
+            ProvisioningArtifactId=old_properties['ProvisioningArtifactId']
         )
 
         logger.info("adding association " + new_properties['ServiceActionId'])
         add_response = sc.associate_service_action_with_provisioning_artifact(
-            ServiceActionAssociations=[
-                {
-                    'ServiceActionId': new_properties['ServiceActionId'],
-                    'ProductId': new_properties['ProductId'],
-                    'ProvisioningArtifactId': new_properties['ProvisioningArtifactId']
-                },
-            ],
+            ServiceActionId=new_properties['ServiceActionId'],
+            ProductId=new_properties['ProductId'],
+            ProvisioningArtifactId=new_properties['ProvisioningArtifactId']
         )
 
 def send_response(event, context, status, reason, data):
