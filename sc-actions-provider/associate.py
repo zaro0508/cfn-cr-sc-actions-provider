@@ -63,14 +63,17 @@ def disassociate_actions(aws_account_id, service_action_id, product_id, provisio
         "dis-associate action " + service_action_id +
         " with product " + product_id + ", provisioning_artifact_ids: " +
         str(provisioning_artifact_ids))
-    associations = create_service_action_associations(service_action_id, product_id, provisioning_artifact_ids)
+    associations = create_service_action_associations(
+        service_action_id,
+        product_id,
+        provisioning_artifact_ids)
     response = sc.batch_disassociate_service_action_from_provisioning_artifact(
         ServiceActionAssociations=associations
     )
 
-def update_actions(event):
+def update_action_associations(event):
     '''
-    Update SC service actions from a product version
+    Update SC service action associations
 
     Adding a Product version (i.e. ProvisioningArtifactVersion) is an update event and
     associating an action to a product depends on the ProvisioningArtifactVersion(s)
@@ -123,7 +126,7 @@ def create(event, context):
 @helper.update
 def update(event, context):
     logger.debug("Received event: " + json.dumps(event, sort_keys=False))
-    return update_actions(event)
+    return update_action_associations(event)
 
 
 @helper.delete

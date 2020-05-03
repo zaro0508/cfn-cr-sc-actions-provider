@@ -139,8 +139,8 @@ Parameters:
     Type: String
     Description: The SC product Id
   ProvisioningArtifactIds:
-    Type: CommaDelimitedList
-    Description: The SC product version IDs
+    Type: String
+    Description: The SC product version IDs (i.e. pa-t5pccmbm6exfk|pa-jfnst4r5tvnki)
 Resources:
   # Create the SC action
   EC2InstanceAction:
