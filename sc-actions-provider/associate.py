@@ -24,15 +24,13 @@ def get_provisioning_artifact_ids(product_id):
     '''
     Get all product version IDs
     '''
-    response = sc.list_provisioning_artifacts(product_id)
+    response = sc.list_provisioning_artifacts(
+        ProductId=product_id
+    )
     provisioning_artifact_details = response['ProvisioningArtifactDetails']
     provisioning_artifact_ids = []
-    while True:
-        for provisioning_artifact_detail in provisioning_artifact_details:
-            provisioning_artifact_ids.append(provisioning_artifact_detail['Id'])
-
-        if response['NextPageToken'] == "null":
-            break
+    for provisioning_artifact_detail in provisioning_artifact_details:
+        provisioning_artifact_ids.append(provisioning_artifact_detail['Id'])
 
     return provisioning_artifact_ids
 
