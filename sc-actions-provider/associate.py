@@ -1,7 +1,7 @@
 import boto3
 import json
 import logging
-import requests
+import uuid
 
 from crhelper import CfnResource
 
@@ -18,93 +18,121 @@ def get_parameters(event):
     aws_account_id = event['StackId'].split(':')[4]
     service_action_id = event['ResourceProperties']['ServiceActionId']
     product_id = event['ResourceProperties']['ProductId']
-    provisioning_artifact_id = event['ResourceProperties']['ProvisioningArtifactId']
-    return aws_account_id, service_action_id, product_id, provisioning_artifact_id
+    provisioning_artifact_ids = event['ResourceProperties']['ProvisioningArtifactIds'].split("|")
+    return aws_account_id, service_action_id, product_id, provisioning_artifact_ids
 
-def validate_parameters(aws_account_id, service_action_id, product_id, provisioning_artifact_id):
-    sc.describe_provisioning_artifact(
-        ProductId=product_id,
-        ProvisioningArtifactId=provisioning_artifact_id
-    )
+def create_service_action_associations(service_action_id, product_id, provisioning_artifact_ids):
+    '''
+    Create a list of service action associations for batch execution
+    '''
+    service_action_assocations = []
+    for provisioning_artifact_id in provisioning_artifact_ids:
+        service_action_assocation = {
+            'ServiceActionId': service_action_id,
+            'ProductId': product_id,
+            'ProvisioningArtifactId': provisioning_artifact_id
+        }
+        service_action_assocations.append(service_action_assocation)
 
-def create_provider(aws_account_id, service_action_id, product_id, provisioning_artifact_id):
+    return service_action_assocations
+
+def associate_actions(aws_account_id, service_action_id, product_id, provisioning_artifact_ids):
+    '''
+    associate SC service actions with a product version
+    '''
 
     logger.debug(
-        "Associate action " + service_action_id + " with product " + product_id + ", " + provisioning_artifact_id)
-    response = sc.associate_service_action_with_provisioning_artifact(
-        ProductId=product_id,
-        ServiceActionId=service_action_id,
-        ProvisioningArtifactId=provisioning_artifact_id
+        "Associate action " + service_action_id +
+        " with product " + product_id + ", provisioning_artifact_ids: " +
+        str(provisioning_artifact_ids))
+    service_action_associations = create_service_action_associations(
+        service_action_id,
+        product_id,
+        provisioning_artifact_ids)
+    response = sc.batch_associate_service_action_with_provisioning_artifact(
+        ServiceActionAssociations=service_action_associations
     )
+    physical_resource_id = 'ass-{}'.format(str(uuid.uuid4()).replace('-', '')[0:13])
+    return physical_resource_id
+
+def disassociate_actions(aws_account_id, service_action_id, product_id, provisioning_artifact_ids):
+    '''
+    disassociate SC service actions from a product version
+    '''
+    logger.debug(
+        "dis-associate action " + service_action_id +
+        " with product " + product_id + ", provisioning_artifact_ids: " +
+        str(provisioning_artifact_ids))
+    associations = create_service_action_associations(
+        service_action_id,
+        product_id,
+        provisioning_artifact_ids)
+    response = sc.batch_disassociate_service_action_from_provisioning_artifact(
+        ServiceActionAssociations=associations
+    )
+
+def update_action_associations(event):
+    '''
+    Update SC service action associations
+
+    Adding a Product version (i.e. ProvisioningArtifactVersion) is an update event and
+    associating an action to a product depends on the ProvisioningArtifactVersion(s)
+
+    Adding a ProvisioningArtifactVersion works because CFN will create a new
+    ProvisioningArtifactVersion ID and pass it to the association custom resource.
+    The custom resource then associates the action with the new
+    ProvisioningArtifactVersion(s)
+
+    Removing a ProvisioningArtifactVersion does not work because AWS does not allow
+    deleting a ProvisioningArtifactVersion when there is an action associated with it.
+    The action would need to be disassociated from the ProvisioningArtifactVersion(s) before
+    the ProvisioningArtifactVersion can be removed.  This would only work if the dependency
+    is reversed (i.e. Provisioning versions depends on association)
+    '''
+
+    properties = event['ResourceProperties']
+    service_action_id = properties['ServiceActionId']
+    product_id = properties['ProductId']
+    provisioning_artifact_ids = properties['ProvisioningArtifactIds'].split("|")
+    old_properties = event['OldResourceProperties']
+    old_provisioning_artifact_ids = old_properties['ProvisioningArtifactIds'].split("|")
+
+    # We only associate new ProvisioningArtifactVersion(s)
+    new_provisioning_artifact_ids = []
+    if len(provisioning_artifact_ids) > len(old_provisioning_artifact_ids):
+        for curr_provisioning_artifact_id in provisioning_artifact_ids:
+            if curr_provisioning_artifact_id not in old_provisioning_artifact_ids:
+                new_provisioning_artifact_ids.append(curr_provisioning_artifact_id)
+
+        service_action_associations = create_service_action_associations(
+            service_action_id,
+            product_id,
+            new_provisioning_artifact_ids)
+        logger.debug(
+            "Associate action " + service_action_id +
+            " with product " + product_id + ", provisioning_artifact_ids: " +
+            str(new_provisioning_artifact_ids))
+        response = sc.batch_associate_service_action_with_provisioning_artifact(
+            ServiceActionAssociations=service_action_associations
+        )
+
+    return event['PhysicalResourceId']
 
 @helper.create
 def create(event, context):
     logger.debug("Received event: " + json.dumps(event, sort_keys=False))
-    validate_parameters(*get_parameters(event))
-    if create_provider(*get_parameters(event)):
-        return True
-    else:
-        logger.debug("Send cloudformation a FAILED response")
-        status = 'FAILED'
-        reason = "Failed to create a sevice catalog association"
-        data = {}
-        send_response(event, context, status, reason, data)
-        return False
-
-@helper.delete
-def delete(event, context):
-    logger.debug("Received event: " + json.dumps(event, sort_keys=False))
-    disassociate_action(*get_parameters(event))
-
-def disassociate_action(aws_account_id, service_action_id, product_id, provisioning_artifact_id):
-    logger.debug(
-        "dis-associating action " + service_action_id + " with product " + product_id + ", " + provisioning_artifact_id)
-    response = sc.disassociate_service_action_from_provisioning_artifact(
-        ServiceActionId=service_action_id,
-        ProductId=product_id,
-        ProvisioningArtifactId=provisioning_artifact_id
-    )
+    return associate_actions(*get_parameters(event))
 
 @helper.update
 def update(event, context):
     logger.debug("Received event: " + json.dumps(event, sort_keys=False))
-    reassociate_action(event)
+    return update_action_associations(event)
 
-def reassociate_action(event):
-    # remove association with existing project (or version) then add association with new project (or version)
-    new_properties = event['ResourceProperties']
-    old_properties = event['OldResourceProperties']
-    if new_properties != old_properties:
-        logger.info("removing association " + old_properties['ServiceActionId'])
-        remove_response = sc.disassociate_service_action_from_provisioning_artifact(
-            ServiceActionId=old_properties['ServiceActionId'],
-            ProductId=old_properties['ProductId'],
-            ProvisioningArtifactId=old_properties['ProvisioningArtifactId']
-        )
 
-        logger.info("adding association " + new_properties['ServiceActionId'])
-        add_response = sc.associate_service_action_with_provisioning_artifact(
-            ServiceActionId=new_properties['ServiceActionId'],
-            ProductId=new_properties['ProductId'],
-            ProvisioningArtifactId=new_properties['ProvisioningArtifactId']
-        )
-
-def send_response(event, context, status, reason, data):
-    responseBody = {'Status': status,
-                    'Reason': reason,
-                    'StackId': event['StackId'],
-                    'RequestId': event['RequestId'],
-                    'LogicalResourceId': event['LogicalResourceId'],
-                    'Data': data}
-    logger.debug('RESPONSE BODY:n' + json.dumps(responseBody))
-    try:
-        req = requests.put(event['ResponseURL'], data=json.dumps(responseBody))
-        if req.status_code != 200:
-            logger.debug(req.text)
-            raise Exception('Recieved non 200 response while sending response to CFN.')
-        return
-    except requests.exceptions.RequestException as e:
-        raise
+@helper.delete
+def delete(event, context):
+    logger.debug("Received event: " + json.dumps(event, sort_keys=False))
+    disassociate_actions(*get_parameters(event))
 
 def lambda_handler(event, context):
     helper(event, context)

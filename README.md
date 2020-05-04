@@ -107,7 +107,7 @@ parameters:
   AssumeRole: "arn:aws:iam::563295687221:role/SCEC2LaunchRole"
   # Assocation params
   ProductId: "prod-oxldqdwxwxtlg"              # the SC product ID
-  ProvisioningArtifactId: "pa-ejemsqmj4uewa"   # the SC product's version ID
+  ProvisioningArtifactIds: "pa-ejemsqmj4uewa"   # the SC product's version ID
 ```
 
 Create the AWS cloudformation template
@@ -138,9 +138,9 @@ Parameters:
   ProductId:
     Type: String
     Description: The SC product Id
-  ProvisioningArtifactId:
+  ProvisioningArtifactIds:
     Type: String
-    Description: The SC product's version Id
+    Description: The SC product version IDs (i.e. pa-t5pccmbm6exfk|pa-jfnst4r5tvnki)
 Resources:
   # Create the SC action
   EC2InstanceAction:
@@ -160,7 +160,7 @@ Resources:
         'Fn::Sub': '${AWS::Region}-cfn-cr-sc-actions-provider-AssociateFunctionArn'
       ServiceActionId: !Ref EC2InstanceAction
       ProductId: !Ref ProductId
-      ProvisioningArtifactId: !Ref ProvisioningArtifactId
+      ProvisioningArtifactIds: !Ref ProvisioningArtifactIds
 Outputs:
   EC2InstanceActionId:
     Value: !Ref EC2InstanceAction
