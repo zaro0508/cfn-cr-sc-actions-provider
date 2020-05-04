@@ -8,6 +8,63 @@ resource is implemented with a lambda to allow creation, update, and deletion of
 resources using cloudformation. It also provides the functionality to create, update and delete
 SC action associations to SC products.
 
+Due to a few AWS issues we have decided to implement a bastardized custom resource.
+This bastard will only create and remove SC actions. Updates will be a noop.
+
+The idea to work around the AWS issue is to use the following workflow:
+
+1. Initially add all SC actions (stop/start/restart) to all SC product versions
+2. Before a sceptre update make the CI remove all SC actions from all product versions
+3. Let sceptre update all CFN templates, this includes updating products and it this
+step will also re-add all SC actions to all SC product versions.
+
+## AWS Issues
+
+### Product Duplication
+
+The cloudformation AWS::ServiceCatalog::CloudFormationProduct Property
+ProvisioningArtifactParameters is not working correctly. It duplicates the entire
+list of products on an update. This only happens after a service catalog action is
+associated with one of the Product version (i.e. ProvisioningArtifactIds). This is
+bad because you can wind up with a ton of product versions that do not match what's
+in the cloudformation template. We are wondering if this is a know issue at AWS or
+if are doing something wrong here?
+
+For example:
+1. start with two items in ProvisioningArtifactParameters list
+2. associate an action to the product(s)
+3. make a change to any CloudFormationProduct parameters (i.e. Owner)
+4. redeploy product template
+
+__NOTE__: two additional versions are deployed. now we wind up with 4 versions of the
+product in AWS even though there are still only two version in the CFN template
+
+### Changing ProvisioningArtifact ID
+Attempt workaround to disassociate actions from product versions
+update the product template, then re-associate with product versions again
+failed to work because CloudFormationProduct always create new
+ProvisioningArtifact IDs even though the product versions never changed.
+
+Result:
+Updates to product templates create a new ProductArtifactVersion ID which means that
+new product versions get the actions however previously provisioned products will
+lose the actions because it is associated with the old ProductArtifactVersion ID.
+
+Example:
+1. SC restart action associated with prod ver1 (pa-1234)
+2. disassociate restart action from prod ver1 (pa-1234)
+3. Add prod ver2
+
+Prod ver 1 gets a new ProvisioningArtifact ID (pa-45678)
+Prod ver 2 gets a new ProvisioningArtifact ID (pa-90909)
+
+4. associate action to product ver1 & ver2
+
+Now the SC restart actionm is associated with ver1 (pa-45678) & ver2 (pa-90909).
+SC restart was removed from prod ver1 (pa-1234) in step #2 and step #4 never
+put it back. This results causes any products provisioned with old ver1 (pa-1234)
+to lose the SC action.
+
 ## Development
 
 ### Contributions
@@ -107,7 +164,6 @@ parameters:
   AssumeRole: "arn:aws:iam::563295687221:role/SCEC2LaunchRole"
   # Assocation params
   ProductId: "prod-oxldqdwxwxtlg"              # the SC product ID
-  ProvisioningArtifactIds: "pa-ejemsqmj4uewa"   # the SC product's version ID
 ```
 
 Create the AWS cloudformation template
@@ -138,9 +194,6 @@ Parameters:
   ProductId:
     Type: String
     Description: The SC product Id
-  ProvisioningArtifactIds:
-    Type: String
-    Description: The SC product version IDs (i.e. pa-t5pccmbm6exfk|pa-jfnst4r5tvnki)
 Resources:
   # Create the SC action
   EC2InstanceAction:
@@ -160,7 +213,6 @@ Resources:
         'Fn::Sub': '${AWS::Region}-cfn-cr-sc-actions-provider-AssociateFunctionArn'
       ServiceActionId: !Ref EC2InstanceAction
       ProductId: !Ref ProductId
-      ProvisioningArtifactIds: !Ref ProvisioningArtifactIds
 Outputs:
   EC2InstanceActionId:
     Value: !Ref EC2InstanceAction
