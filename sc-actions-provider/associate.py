@@ -61,8 +61,8 @@ def associate_actions(aws_account_id, service_action_id, product_id):
         str(provisioning_artifact_ids))
     service_action_associations = create_service_action_associations(
         service_action_id,
-        product_id,
-        provisioning_artifact_ids)
+        product_id
+    )
     response = sc.batch_associate_service_action_with_provisioning_artifact(
         ServiceActionAssociations=service_action_associations
     )
@@ -80,8 +80,8 @@ def disassociate_actions(aws_account_id, service_action_id, product_id):
         str(provisioning_artifact_ids))
     associations = create_service_action_associations(
         service_action_id,
-        product_id,
-        provisioning_artifact_ids)
+        product_id
+    )
     response = sc.batch_disassociate_service_action_from_provisioning_artifact(
         ServiceActionAssociations=associations
     )
