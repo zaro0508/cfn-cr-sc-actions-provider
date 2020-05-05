@@ -24,6 +24,7 @@ def get_parameters(event):
 def create_provider(aws_account_id, name, ssm_doc_name, ssm_doc_version, assume_role):
     response = sc.create_service_action(
         Name=name,
+        Description=name,
         DefinitionType='SSM_AUTOMATION',
         Definition= {
                 "Name": ssm_doc_name,
@@ -59,6 +60,7 @@ def update(event, context):
         response = sc.update_service_action(
             Id=id,
             Name=new_properties['Name'],
+            Description=new_properties['Name'],
             Definition= {
                     "Name": new_properties['SsmDocName'],
                     "Version": new_properties['SsmDocVersion'],
