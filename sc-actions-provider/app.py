@@ -21,21 +21,6 @@ def get_parameters(event):
     assume_role = event['ResourceProperties']['AssumeRole']
     return aws_account_id, name, ssm_doc_name, ssm_doc_version, assume_role
 
-def validate_parameters(aws_account_id, name, ssm_doc_name, ssm_doc_version, assume_role):
-    logger.debug("Validate SSM doc " + ssm_doc_name + ", " + ssm_doc_version)
-    ssm = boto3.client("ssm")
-    ssm.get_document(
-        Name=ssm_doc_name,
-        DocumentVersion=ssm_doc_version,
-    )
-
-    assume_role_name = assume_role.split(':')[5].split('/')[1]
-    logger.debug("Validate role: " + assume_role_name)
-    iam = boto3.client("iam")
-    iam.get_role(
-        RoleName=assume_role_name
-    )
-
 def create_provider(aws_account_id, name, ssm_doc_name, ssm_doc_version, assume_role):
     response = sc.create_service_action(
         Name=name,
@@ -54,7 +39,6 @@ def create_provider(aws_account_id, name, ssm_doc_name, ssm_doc_version, assume_
 @helper.create
 def create(event, context):
     logger.debug("Received event: " + json.dumps(event, sort_keys=False))
-    validate_parameters(*get_parameters(event))
     return create_provider(*get_parameters(event))
 
 @helper.delete

@@ -33,8 +33,6 @@ Resources:
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
         - "arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess"
-        - "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
-        - "arn:aws:iam::aws:policy/IAMFullAccess"
 Outputs:
   CreateFunctionArn:
     Value: !GetAtt CreateFunction.Arn
