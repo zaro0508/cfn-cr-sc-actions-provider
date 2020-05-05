@@ -71,7 +71,6 @@ def update(event, context):
     logger.debug("Received event: " + json.dumps(event, sort_keys=False))
     new_properties = event['ResourceProperties']
     old_properties = event['OldResourceProperties']
-    id = event['PhysicalResourceId']
     if new_properties != old_properties:
         response = sc.update_service_action(
             Id=id,
@@ -83,9 +82,7 @@ def update(event, context):
                     "Parameters": "[{\"Name\":\"AutomationAssumeRole\",\"Type\":\"TARGET\"}]"
                   }
         )
-        id = response['ServiceActionDetail']['ServiceActionSummary']['Id']
-        logger.info("updated sc action = " + id)
-    return id
+    return event['PhysicalResourceId']
 
 def lambda_handler(event, context):
     helper(event, context)
