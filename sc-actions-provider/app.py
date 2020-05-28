@@ -66,7 +66,7 @@ def update(event, context):
                     "Name": new_properties['SsmDocName'],
                     "Version": new_properties['SsmDocVersion'],
                     "AssumeRole": new_properties['AssumeRole'],
-                    "Parameters": "[{\"Name\":\"AutomationAssumeRole\",\"Type\":\"TARGET\"}]"
+                    "Parameters": "[{\"Name\":\"InstanceId\",\"Type\":\"TARGET\"}]"
                   }
         )
         id = response['ServiceActionDetail']['ServiceActionSummary']['Id']
