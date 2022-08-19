@@ -5,7 +5,7 @@ Resources:
   CreateFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: python3.6
+      Runtime: python3.9
       CodeUri: sc-actions-provider/
       Handler: app.lambda_handler
       Role: !GetAtt FunctionRole.Arn
@@ -13,7 +13,7 @@ Resources:
   AssociateFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: python3.6
+      Runtime: python3.9
       CodeUri: sc-actions-provider/
       Handler: associate.lambda_handler
       Role: !GetAtt FunctionRole.Arn
