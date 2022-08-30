@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+typing_extensions = "~=3.10"
 pytest = "~=6.0.1"
 requests-mock = "~=1.8.0"
 pre-commit = "~=2.20.0"
