@@ -4,16 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-typing_extensions = "~=3.10"
-pytest = "~=6.0.1"
-requests-mock = "~=1.8.0"
-pre-commit = "~=2.20.0"
-aws-sam-cli = "~=1.55.0"
-awscli = "~=1.25.63"
+pytest = "~=6.0"
+requests-mock = "~=1.8"
+pre-commit = "~=2.20"
+aws-sam-cli = "~=1.55"
+awscli = "~=1.25"
 
 [packages]
-crhelper = "~=2.0.11"
-synapseclient = "~=2.6.0"
+crhelper = "~=2.0"
+synapseclient = "~=2.6"
 
 [requires]
 python_version = "3.9"
