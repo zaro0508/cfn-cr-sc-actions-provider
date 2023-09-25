@@ -11,6 +11,7 @@ helper = CfnResource(
 try:
     sc = boto3.client("servicecatalog")
 except Exception as e:
+    logger.exception(e)
     helper.init_failure(e)
 
 def get_parameters(event):
